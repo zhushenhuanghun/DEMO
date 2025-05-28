@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《十人小组 - 未来远征模拟》V0.8 </title>
+    <style>
+        :root {
+            --primary-text-color: #333;
+            --secondary-text-color: #555;
+            --bg-color: #f4f7f6;
+            --container-bg-color: #fff;
+            --card-bg-color: #f9f9f9;
+            --card-border-color: #e0e0e0;
+            --event-section-bg-color: #e9edf0;
+            --button-bg-color: #2980b9;
+            --button-text-color: white;
+            --button-hover-bg-color: #2c3e50;
+            --disabled-button-bg-color: #f0f0f0;
+            --disabled-button-text-color: #aaa;
+            --log-bg-color: #f9f9f9;
+            --log-border-color: #e0e0e0;
+            --header-border-color: #e0e0e0;
+            --tooltip-bg-color: #555;
+            --tooltip-text-color: #fff;
+            --progress-bar-bg: #e0e0e0;
+            --default-progress-value-color: #3498db; /* Will be overridden by JS */
+            --theme-toggle-bg: #34495e;
+            --theme-toggle-text: #ecf0f1;
+            --radar-line-color: #ccc;
+            --radar-data-fill: rgba(52, 152, 219, 0.2);
+            --radar-data-stroke: #3498db;
+            --radar-point-color: #2980b9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            background-color: var(--container-bg-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode {
+            --primary-text-color: #ecf0f1;
+            --secondary-text-color: #bdc3c7;
+            --bg-color: #2c3e50;
+            --container-bg-color: #34495e;
+            --card-bg-color: #4a6179;
+            --card-border-color: #5d7083;
+            --event-section-bg-color: #4a6179;
+            --button-bg-color: #3498db;
+            --button-text-color: #ecf0f1;
+            --button-hover-bg-color: #2980b9;
+            --disabled-button-bg-color: #5d7083;
+            --disabled-button-text-color: #7f8c8d;
+            --log-bg-color: #4a6179;
+            --log-border-color: #5d7083;
+            --header-border-color: #4a6179;
+            --tooltip-bg-color: #f0f0f0;
+            --tooltip-text-color: #333;
+            --progress-bar-bg: #5d7083;
+            --theme-toggle-bg: #ecf0f1;
+            --theme-toggle-text: #34495e;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--header-border-color);
+            padding-bottom: 8px;
+            flex: 0 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-text-color);
+            font-size: 1.8em;
+            margin: 0.1em 0;
+        }
+
+        #phaseDisplay {
+            font-style: italic;
+            color: var(--secondary-text-color);
+            margin-bottom: 5px;
+        }
+
+        #statusDashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .status-card {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--card-border-color);
+            border-radius: 6px;
+            padding: 6px;
+            position: relative;
+            transition: transform 0.2s ease-in-out, background-color 0.3s, border-color 0.3s;
+            flex: 1 1 180px;
+            max-width: 32%;
+            min-width: 160px;
+        }
+        .status-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .status-card h3 {
+            margin-top: 0;
+            margin-bottom: 3px;
+            font-size: 0.9em;
+            color: var(--primary-text-color);
+            display: flex;
+            align-items: center;
+        }
+         .status-card h3 svg {
+            margin-right: 8px;
+            width: 20px;
+            height: 20px;
+            fill: var(--primary-text-color); 
+        }
+
+        .status-card .value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--primary-text-color);
+            margin-bottom: 2px;
+        }
+
+        .status-card .description {
+            font-size: 0.85em;
+            color: var(--secondary-text-color);
+            min-height: 2.5em; 
+            margin-bottom: 5px;
+        }
+
+        .tooltip {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: help;
+            color: var(--secondary-text-color);
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: var(--tooltip-bg-color);
+            color: var(--tooltip-text-color);
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; 
+            left: 50%;
+            margin-left: -110px; 
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        progress {
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-color: var(--progress-bar-bg);
+            border: 1px solid var(--card-border-color); 
+        }
+
+        progress::-webkit-progress-bar {
+            background-color: var(--progress-bar-bg);
+            border-radius: 6px;
+        }
+
+        progress::-webkit-progress-value {
+            background-color: var(--default-progress-value-color); 
+            border-radius: 6px;
+            transition: background-color 0.5s ease, width 0.3s ease; 
+        }
+
+        progress::-moz-progress-bar { 
+            background-color: var(--default-progress-value-color);
+            border-radius: 6px;
+            transition: background-color 0.5s ease, width 0.3s ease;
+        }
+
+
+        #eventSection {
+            background-color: var(--event-section-bg-color);
+            padding: 18px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #eventTitle {
+            font-size: 1.3em;
+            color: #c0392b; 
+            margin-bottom: 8px;
+            flex: 0 0 auto;
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--card-border-color);
+        }
+        body.dark-mode #eventTitle {
+            color: #e67e22; 
+        }
+
+
+        #eventDescription {
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+
+        #choicesContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            padding-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        #choicesContainer button {
+            display: block;
+            width: calc(100% - 10px);
+            padding: 10px;
+            margin: 0 auto;
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            border: 1px solid transparent; 
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+        body.dark-mode #choicesContainer button {
+            border-color: #2980b9; 
+        }
+
+
+        #choicesContainer button:hover {
+            background-color: var(--button-hover-bg-color);
+        }
+
+        #feedbackText {
+            margin-top: 12px;
+            font-style: italic;
+            color: var(--secondary-text-color);
+            padding: 10px;
+            background-color: var(--card-bg-color); 
+            border-radius: 4px;
+            border-left: 3px solid var(--default-progress-value-color);
+            font-size: 0.9em;
+            flex: 0 0 auto;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 10px;
+            flex: 0 0 auto;
+        }
+
+        .controls button {
+            padding: 8px 16px;
+            font-size: 0.95em;
+            margin: 0 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid var(--card-border-color);
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            transition: background-color 0.2s;
+        }
+        .controls button:disabled {
+            background-color: var(--disabled-button-bg-color);
+            color: var(--disabled-button-text-color);
+            cursor: not-allowed;
+        }
+        .controls button:not(:disabled):hover {
+            background-color: var(--button-hover-bg-color);
+        }
+
+        #gameLogSection {
+            margin-top: 10px;
+        }
+
+        #gameLogSection h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--primary-text-color);
+            font-size: 1.2em;
+            padding-top: 5px;
+        }
+
+        #gameLogUl {
+            list-style-type: none;
+            padding: 0;
+            max-height: 30vh;
+            overflow-y: auto;
+            border: 1px solid var(--log-border-color);
+            border-radius: 4px;
+            padding: 8px;
+            background-color: var(--log-bg-color);
+            margin-bottom: 10px;
+        }
+
+        .log-entry {
+            padding: 6px;
+            margin-bottom: 3px;
+            border-left-width: 3px;
+            border-left-style: solid;
+            background-color: var(--container-bg-color); 
+            font-size: 0.85em;
+            border-radius: 0 3px 3px 0;
+            word-wrap: break-word; 
+        }
+         body.dark-mode .log-entry {
+            background-color: #5d7083;
+         }
+
+        .log-entry.system { border-left-color: #7f8c8d; } 
+        .log-entry.year { border-left-color: #2ecc71; font-weight: bold;} 
+        .log-entry.game-event { border-left-color: #9b59b6; font-style: italic; } 
+        .log-entry.decision { border-left-color: #e67e22; } 
+        .log-entry.game-over { 
+            border-left-color: #c0392b; 
+            font-weight: bold; 
+            color: #c0392b;
+        }
+        body.dark-mode .log-entry.game-over {
+            color: #e74c3c; 
+            border-left-color: #e74c3c;
+        }
+
+
+        #gameOverMessage {
+            text-align: center;
+            font-size: 1.5em;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-width: 1px;
+            border-style: solid;
+        }
+        #gameOverMessage.victory {
+            background-color: #d4efdf; color: #1e8449; border-color: #a9dfbf;
+        }
+        body.dark-mode #gameOverMessage.victory {
+            background-color: #27ae60; color: #ecf0f1; border-color: #2ecc71;
+        }
+        #gameOverMessage.defeat { 
+            background-color: #f9e79f; color: #b7950b; border-color: #f8c471;
+        }
+         body.dark-mode #gameOverMessage.defeat {
+            background-color: #f39c12; color: #2c3e50; border-color: #e67e22;
+        }
+        #gameOverMessage.crisis { 
+            background-color: #f5b7b1; color: #c0392b; border-color: #e6b0aa;
+        }
+        body.dark-mode #gameOverMessage.crisis {
+            background-color: #e74c3c; color: #ecf0f1; border-color: #c0392b;
+        }
+
+        .theme-toggle-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            background-color: var(--theme-toggle-bg);
+            color: var(--theme-toggle-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 0.9em;
+        }
+
+        /* 雷达图样式 */
+        .radar-chart-container {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 15px;
+            background-color: var(--card-bg-color);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .radar-title {
+            font-size: 1.3em;
+            margin: 0 0 10px 0;
+            color: var(--primary-text-color);
+            font-weight: 600;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: var(--event-section-bg-color);
+            border-radius: 4px;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            color: var(--secondary-text-color);
+            font-weight: 500;
+        }
+        
+        .radar-chart {
+            max-height: 350px;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .radar-level {
+            fill: transparent;
+            stroke: var(--radar-line-color);
+            stroke-width: 1;
+        }
+        
+        .radar-axis {
+            stroke: var(--radar-line-color);
+            stroke-width: 1;
+        }
+        
+        .radar-label {
+            font-size: 14px;
+            font-weight: 500;
+            fill: var(--primary-text-color);
+        }
+        
+        .radar-scale {
+            font-size: 11px;
+            fill: var(--secondary-text-color);
+        }
+        
+        .radar-data {
+            fill: var(--radar-data-fill);
+            stroke: var(--radar-data-stroke);
+            stroke-width: 2;
+        }
+        
+        .radar-point {
+            fill: var(--radar-point-color);
+            stroke: white;
+            stroke-width: 1;
+        }
+        
+        body.dark-mode .radar-level,
+        body.dark-mode .radar-axis {
+            stroke: #5d7083;
+        }
+        
+        body.dark-mode .radar-label,
+        body.dark-mode .radar-scale {
+            fill: #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+    <button id="themeToggle" class="theme-toggle-button">🌙/☀️</button>
+    <div class="container">
+        <header>
+            <h1>《十人小组 - 未来远征模拟》V0.8</h1>
+            <p id="currentYearDisplay">年份：2025</p>
+            <p id="phaseDisplay">阶段：初始·奠基期 (2025)</p>
+        </header>
+
+        <div id="statusDashboard">
+            </div>
+
+        <div id="eventSection">
+            <h2 id="eventTitle">欢迎来到《十人小组 - 未来远征模拟》</h2>
+            <p id="eventDescription">
+                您和您的团队将共同导航《十人小组》(TPG)项目从2025年至2030年的发展道路。<br>
+                每个“回合”代表一个关键的发展阶段或年份，您将面临一个核心事件，并需要共同做出战略决策。<br>
+                您的决策将直接影响团队的六大核心状态，并可能触发连锁反应——这就是“财富流沙盘效应”。<br>
+                仔细讨论，明智选择，努力实现团队的愿景！
+            </p>
+            <div id="choicesContainer">
+                </div>
+            <p id="feedbackText">点击“开始远征”以触发第一个事件。</p>
+        </div>
+        
+        <div id="gameOverMessage" style="display:none;"></div>
+
+        <div class="controls">
+            <button id="nextButton">开始远征</button>
+            <button id="restartButton" style="display:none;">重新开始</button>
+        </div>
+
+        <div id="gameLogSection">
+            <h2>决策日志</h2>
+            <ul id="gameLogUl"></ul>
+        </div>
+    </div>
+
+    <script src="radar-chart.js"></script>
+    <script>
+        // --- Game State Definition ---
+        let gameState = {
+            currentYear: 2025,
+            phase: "初始·奠基期 (2025)",
+            turn: 0,
+            maxTurns: 6,
+
+            financialHealth: 50,    
+            monthlyBurnRate: 10000, 
+            teamEffectiveness: 50,  
+            productStrength: 50,    
+            productInnovation: 5,   // 0-10 scale
+            marketPosition: 25,     
+            brandReputation: 50,    // 0-100 scale
+            businessViability: 30,  
+            communityPointsPool: 100, 
+            communitySize: 1500,
+            communityEngagement: 10, // Percentage
+            contributorsCount: 10,
+            contributorMorale: 6, // 0-10 scale
+            pointsSystemStatus: "筹备中",
+            visionExecution: 50,    
+            specialStatus: ["愿景尚在探索期", "资金相对充裕"], 
+
+            currentEvent: null,
+            eventHistory: [], 
+            gameOver: false,
+            gameOverReason: "", 
+            gameLog: [] 
+        };
+        const initialGameState = JSON.parse(JSON.stringify(gameState)); 
+
+        // --- Game State Getters (for descriptive text) ---
+        const gameStateGetters = {
+            getFinancialHealthDescription: (gs) => {
+                const score = gs.financialHealth;
+                const conceptualMaxFunds = 90000; 
+                const currentConceptualFunds = (score / 100) * conceptualMaxFunds;
+                const monthsSustainable = gs.monthlyBurnRate > 0 ? Math.floor(currentConceptualFunds / gs.monthlyBurnRate) : Infinity;
+                
+                let runwayText = monthsSustainable === Infinity ? "(极充裕)" : `(${monthsSustainable}个月支撑)`;
+                if (score <= 10) runwayText = "(<1个月支撑!)"; 
+
+                if (score <= 10) return `已破产 💔 ${runwayText}`;        
+                if (score < 20) return `濒临破产 💀 ${runwayText}`;     
+                if (score < 30) return `极度紧张 😰 ${runwayText}`; 
+                if (score < 40) return `紧张 😟 ${runwayText}`;     
+                if (score < 50) return `略有储备 🤔 ${runwayText}`; 
+                if (score < 70) return `尚可稳定 😊 ${runwayText}`;
+                return `充裕健康 💰 ${runwayText}`;
+            },
+            getTeamEffectivenessDescription: (gs) => {
+                const score = gs.teamEffectiveness;
+                let moraleDesc = `贡献者(${gs.contributorsCount}人,士气${gs.contributorMorale}/10)`;
+                if (score <= 20) return `濒临解体 💔 (${moraleDesc})`; 
+                if (score < 45) return `效率低下 😓 (${moraleDesc})`;
+                if (score < 75) return `基本运转 👍 (${moraleDesc})`;
+                return `高效协同 🔥 (${moraleDesc})`;
+            },
+            getProductStrengthDescription: (gs) => {
+                const score = gs.productStrength;
+                let innovationDesc = `创新力(${gs.productInnovation}/10)`;
+                if (score < 25) return `无吸引力 📉 (${innovationDesc})`;
+                if (score < 45) return `功能平庸 😐 (${innovationDesc})`;
+                if (score < 75) return `有竞争力 ✨ (${innovationDesc})`;
+                return `市场领先 🚀 (${innovationDesc})`;
+            },
+            getMarketPositionDescription: (gs) => {
+                const score = gs.marketPosition;
+                let reputationDesc = `声誉(${gs.brandReputation}/100)`;
+                let communityDesc = `社群(${gs.communitySize}人,活${gs.communityEngagement}%)`;
+                if (score < 20) return `边缘化/被遗忘 🌫️ (${reputationDesc}, ${communityDesc})`;
+                if (score < 40) return `参与者/认知度低 👀 (${reputationDesc}, ${communityDesc})`;
+                if (score < 70) return `有力竞争者/有口碑 🌟 (${reputationDesc}, ${communityDesc})`;
+                return `领导者/知名 👑 (${reputationDesc}, ${communityDesc})`;
+            },
+            getBusinessViabilityDescription: (gs) => {
+                const score = gs.businessViability;
+                let pointsDesc = `积分(${gs.pointsSystemStatus}), 公共基金(${gs.communityPointsPool}点)`;
+                if (score < 20) return `无法造血 💔 (${pointsDesc})`;
+                if (score < 40) return `模糊高风险 🎲 (${pointsDesc})`;
+                if (score < 70) return `探索验证中 💡 (${pointsDesc})`;
+                return `成熟可持续 🌱 (${pointsDesc})`;
+            },
+            getVisionExecutionDescription: (gs) => {
+                const score = gs.visionExecution;
+                let statusText = gs.specialStatus.length > 0 ? ` (${gs.specialStatus.join(', ')})` : "";
+                if (score < 25) return `严重背离，初心已失 🧭❌${statusText}`;
+                if (score < 45) return `出现偏离 🚧${statusText}`;
+                if (score < 75) return `基本遵循，偶有调整 👍${statusText}`;
+                return `高度契合，稳步推进 🎯${statusText}`;
+            }
+        };
+
+        // --- Event Library (6 Core Events with MAGNIFIED and BALANCED effects) ---
+        const eventLibrary = [
+            { // Event 1 - 2025
+                id: "TPG_SIM_2025_MVP_CHOICE",
+                title: "2025：启航之年 - MVP的十字路口",
+                description: "《十人小组》的第一个MVP（例如，一个基础版的线下工作坊体验流程）经过小范围测试后，收到的用户反馈喜忧参半。一部分核心爱好者对其深度和潜力表示赞赏，但更多普通用户觉得‘门槛偏高’或‘与我最初的期待不符’。团队面临关键抉择：是坚持打磨现有核心体验，还是根据大众反馈进行更‘接地气’的调整，或是投入更多精力教育市场？",
+                yearTriggerMin: 2025, yearTriggerMax: 2025,
+                triggered: false,
+                choices: [
+                    {
+                        text: "坚守核心，深化体验",
+                        effects: function(gs) {
+                            let changes = []; let oldVal;
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 20); changes.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 3); changes.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 12); changes.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 15); changes.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Increased cost
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.max(0, gs.marketPosition - 10); changes.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.max(0, gs.brandReputation - 8); changes.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 20); changes.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("核心体验极致打磨")) gs.specialStatus.push("核心体验极致打磨");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "产品方向大众化调整" && s !== "市场培育强化");
+                            return `属性变化：${changes.join('；')}。连锁反应：产品独特性和创新力大幅增强，团队因坚持愿景而士气高涨。但财务消耗增加，且短期内大众市场拓展更为缓慢，品牌声誉面临小众化挑战。`;
+                        },
+                        feedback: "团队决定不为所动，加倍投入资源深挖核心体验的护城河！这赢得了早期核心用户的狂热赞誉，但也意味着需要更长时间的市场培育和更精准的用户定位，财务压力有所增加。"
+                    },
+                    {
+                        text: "敏捷调整，拥抱反馈",
+                        effects: function(gs) {
+                            let changes = []; let oldVal;
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 10); changes.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.max(0, gs.productInnovation - 2); changes.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 18); changes.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Significant cost
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.max(0, gs.teamEffectiveness - 15); changes.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 20); changes.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.communitySize; gs.communitySize += Math.floor(gs.communitySize * 0.20); changes.push(`社群规模 ${oldVal} -> ${gs.communitySize}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.min(100, gs.brandReputation + 10); changes.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 15); changes.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.max(0, gs.visionExecution - 20); changes.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("产品大众化转型")) gs.specialStatus.push("产品大众化转型");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "核心体验极致打磨" && s !== "市场培育强化");
+                            return `属性变化：${changes.join('；')}。连锁反应：产品更贴近大众，可能加速用户获取和商业模式验证，但也可能失去核心深度用户及创新独特性。团队内部对方向调整有较大疑虑，短期效能显著下降，财务投入剧增，且愿景执行出现严重偏离。`;
+                        },
+                        feedback: "团队迅速响应市场反馈，对MVP进行了大刀斧阔的改革以求更广泛的接受度！这可能吸引更多新用户，但也引发了关于是否失去TPG灵魂的激烈讨论，团队士气受到严重影响。"
+                    },
+                    {
+                        text: "教育市场，等待花开",
+                        effects: function(gs) {
+                            let changes = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 15); changes.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Increased cost
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 8); changes.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 12); changes.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.min(100, gs.brandReputation + 15); changes.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.max(0, gs.businessViability - 12); changes.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`); // More uncertainty
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 10); changes.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("市场培育强化")) gs.specialStatus.push("市场培育强化");
+                             gs.specialStatus = gs.specialStatus.filter(s => s !== "核心体验极致打磨" && s !== "产品大众化转型");
+                            return `属性变化：${changes.join('；')}。连锁反应：若市场教育成功，能提升用户对产品价值的认知，巩固市场地位。但财务投入较大，且短期内商业模式转化不确定性增加，考验团队耐心和资金储备。`;
+                        },
+                        feedback: "团队相信酒香也怕巷子深，决定投入更多资源进行市场教育，提升品牌声誉！这需要耐心和持续的投入，短期内财务压力增加，效果如何尚待市场检验。"
+                    }
+                ]
+            },
+            { // Event 2 - 2026
+                id: "TPG_SIM_2026_TEAM_ENGINE",
+                title: "2026：团队的引擎 - 兼职困境与激励抉择",
+                description: (gs) => `TPG的发展在很大程度上依赖于兼职成员的热情和贡献。然而，“按场次/计件付费”的单一激励模式开始显现疲态。一些核心兼职成员（当前约${gs.contributorsCount}名，士气${gs.contributorMorale}/10）因缺乏长期的归属感、成长空间或与项目更深度的利益绑定，参与的稳定性和产出质量开始波动。`,
+                yearTriggerMin: 2026, yearTriggerMax: 2026, triggered: false,
+                choices: [
+                    {
+                        text: "强化短期现金激励",
+                        effects: function(gs) {
+                            let changes = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 20); changes.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Magnified cost
+                            oldVal = gs.monthlyBurnRate; gs.monthlyBurnRate += 3000; changes.push(`月度运营成本 ${oldVal} -> ${gs.monthlyBurnRate}`);
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 10); changes.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); // Larger short term boost
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.min(10, gs.contributorMorale + 3); changes.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 5); changes.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.max(0, gs.businessViability - 18); changes.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`); // Bigger hit to viability
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.max(0, gs.visionExecution - 12); changes.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("高薪雇佣兵模式")) gs.specialStatus.push("高薪雇佣兵模式");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "积分体系探索中" && s !== "核心贡献者伙伴计划");
+                            return `属性变化：${changes.join('；')}。连锁反应：财务压力剧增，团队文化更趋功利和短期化，严重压缩利润空间并可能损害需要长期投入的创新和深度内容，使愿景执行偏离社群共建。`;
+                        },
+                        feedback: "大幅提高现金激励短期内显著刺激了兼职成员的活跃度，但也使团队的财务状况雪上加霜，社群氛围也更偏向短期利益驱动，核心团队对此感到忧虑。"
+                    },
+                    {
+                        text: "系统化社区积分与权益体系",
+                        effects: function(gs) {
+                            let changes = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 5); changes.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Slightly increased cost for system setup
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 20); changes.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); // Magnified
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.min(10, gs.contributorMorale + 4); changes.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.contributorsCount; gs.contributorsCount = Math.min(gs.contributorsCount + 5, 30); changes.push(`贡献者数量 ${oldVal} -> ${gs.contributorsCount}`); // More attraction
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 12); changes.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 2); changes.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 15); changes.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.communityEngagement; gs.communityEngagement = Math.min(100, gs.communityEngagement + 30); changes.push(`社群活跃度 ${oldVal}% -> ${gs.communityEngagement}%`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 15); changes.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            gs.pointsSystemStatus = "V1.0 社区共建核心"; changes.push(`积分体系状态 -> ${gs.pointsSystemStatus}`);
+                            oldVal = gs.communityPointsPool; gs.communityPointsPool += 1000; changes.push(`社区积分池 ${oldVal} -> ${gs.communityPointsPool}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 25); changes.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("社群激励体系成熟")) gs.specialStatus.push("社群激励体系成熟");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "高薪雇佣兵模式" && s !== "核心贡献者伙伴计划");
+                            return `属性变化：${changes.join('；')}。连锁反应：显著提升社群粘性、贡献质量和数量，为TPG注入强大活力，并巩固社群驱动的商业模式。但这需要持续的运营投入和承诺兑现，若后续奖励无法满足预期，可能导致信任受损。`;
+                        },
+                        feedback: "社区积分与权益体系V1.0正式上线并获得热烈反响！清晰的长期回报预期、丰富的兑换选项和社群荣誉感，极大地激发了贡献者的热情和创造力，社群活跃度和产出质量显著提升。"
+                    },
+                    {
+                        text: "核心贡献者伙伴化",
+                        effects: function(gs) {
+                            let changes = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 10); changes.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Increased cost for meaningful partnership terms
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 20); changes.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.min(10, gs.contributorMorale + 5); changes.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`); // For core
+                            gs.contributorsCount = Math.max(gs.contributorsCount -1, 5); // Some non-core might feel left out
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 18); changes.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 3); changes.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 15); changes.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("核心贡献者伙伴计划")) gs.specialStatus.push("核心贡献者伙伴计划");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "高薪雇佣兵模式" && s !== "积分体系探索中");
+                            return `属性变化：${changes.join('；')}。连锁反应：极大稳定了核心产出和关键人才，提升了产品竞争力与创新能力。但也可能在非伙伴的兼职成员中产生新的期望或不平衡感，需后续关注和管理，可能对贡献者总数有轻微负面影响。`;
+                        },
+                        feedback: "团队决定与最核心的几位贡献者签订伙伴协议，提供更优厚的条件、更深度的项目参与权以及未来潜在的收益分享！这极大地提升了他们的归属感和投入度，但也需要团队审慎处理与其他贡献者的关系，避免产生隔阂。"
+                    }
+                ]
+            },
+            { // Event 3 - 2027
+                id: "TPG_SIM_2027_BIG_DEAL",
+                title: "2027：商业的橄榄枝 - “大单”的诱惑与陷阱",
+                description: "TPG迎来一个潜在的‘大订单’！一家颇具实力的企业希望定制一系列高价值体验活动。订单能极大改善财务（预计收益能覆盖半年运营成本）并提升市场地位，但对方需求与TPG核心理念存在一定差异，且项目周期极紧，对团队精力是巨大考验。",
+                yearTriggerMin: 2027, yearTriggerMax: 2027, triggered: false,
+                choices: [
+                    {
+                        text: "全力以赴，拿下大单",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.min(100, gs.financialHealth + 40); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`);
+                            oldVal = gs.monthlyBurnRate; gs.monthlyBurnRate -= 2000; c.push(`月度运营成本 ${oldVal} -> ${gs.monthlyBurnRate}`);
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.max(0, gs.teamEffectiveness - 25); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.max(0, gs.contributorMorale - 4); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.max(0, gs.productStrength - 15); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.max(0, gs.productInnovation - 2); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 30); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.min(100, gs.brandReputation + 25); c.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 20); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.max(0, gs.visionExecution - 30); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("B2B大客户深度绑定")) gs.specialStatus.push("B2B大客户深度绑定");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "B2B模式验证性成功");
+                            return `属性变化：${c.join('；')}。连锁反应：短期财务状况极大改善，市场地位显著提升。但团队效能因过度透支而严重下降，核心产品创新停滞，且项目方向被大客户深度绑定，严重偏离原有愿景，增加了未来单一客户依赖和团队核心价值迷失的巨大风险。`;
+                        },
+                        feedback: "团队决定赌上一切，拿下这个大单！滚滚财源涌入，市场知名度大增，但也让团队成员们身心俱疲，TPG的核心产品和社群似乎被暂时遗忘，航向发生了剧烈的偏转..."
+                    },
+                    {
+                        text: "谈判与引导，争取双赢",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.min(100, gs.financialHealth + 18); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Still good gain
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 10); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 12); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 1); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 15); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.min(100, gs.brandReputation + 15); c.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 18); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 10); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("B2B战略合作突破")) gs.specialStatus.push("B2B战略合作突破");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "高强度B2B项目交付中");
+                            return `属性变化：${c.join('；')}。连锁反应：虽然短期收益不如ALL IN，但更好地保护了团队和愿景，验证了健康的B2B合作模式，为商业模式长期发展和产品竞争力提升打下良好基础，团队能力得到锻炼。`;
+                        },
+                        feedback: "团队展现了高超的沟通与方案能力！通过与甲方的积极协商，我们找到了一个既能满足对方核心需求，又能充分发挥TPG自身优势的合作模式。这不仅带来了可观的收益，更为TPG的B2B之路积累了宝贵且正向的经验。"
+                    },
+                    {
+                        text: "审慎评估，婉拒不符机会",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 5); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Clearer opportunity cost
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 12); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 10); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 1); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 25); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "高强度B2B项目交付中" && s !== "B2B合作模式探索成功");
+                            if (!gs.specialStatus.includes("坚守核心价值与战略定力")) gs.specialStatus.push("坚守核心价值与战略定力");
+                            return `属性变化：${c.join('；')}。连锁反应：虽然短期内错失了一大笔收入，财务压力持续，但坚守核心愿景极大地凝聚了团队，并为长期品牌建设和产品竞争力的深度打磨赢得宝贵时间与专注。这可能吸引到更契合的未来机会。`;
+                        },
+                        feedback: "团队认为这个‘大单’的风险和代价（特别是对愿景的偏离）过高，决定婉拒，继续按照自己的节奏深耕核心业务。这需要极大的勇气和对自身战略的信心，团队内部对此决定高度认同，士气得到鼓舞。"
+                    }
+                ]
+            },
+            { // Event 4 - 2028
+                id: "TPG_SIM_2028_COMPETITION_INTERNAL",
+                title: "2028：内外交困 - 市场模仿者与内部成长阵痛",
+                description: (gs) => `TPG的核心规则/模式开始被市场模仿，出现低价竞争者，对市场地位构成威胁。同时，团队内部因发展方向、资源分配或早期成员的“初心”与新阶段商业目标的冲突（当前特殊状态：“${gs.specialStatus.join(', ')}”），出现“成长的烦恼”，决策效率和凝聚力受到挑战。`,
+                yearTriggerMin: 2028, yearTriggerMax: 2028, triggered: false,
+                choices: [
+                    {
+                        text: "对外加速创新，对内强化核心领导与战略统一",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 25); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Significant investment
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 4); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.max(0, gs.teamEffectiveness - 20); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); // Major internal shake-up
+                            oldVal = gs.contributorsCount; gs.contributorsCount = Math.max(5, gs.contributorsCount - 3); c.push(`贡献者数量 ${oldVal} -> ${gs.contributorsCount}`);
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.max(0, gs.contributorMorale -2); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 20); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 10); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 8); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 12); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            gs.specialStatus = gs.specialStatus.filter(s => s.includes("探索期") || s.includes("重塑期") || s.includes("尝试失败"));
+                            if (!gs.specialStatus.includes("破釜沉舟式革新")) gs.specialStatus.push("破釜沉舟式革新");
+                            return `属性变化：${c.join('；')}。连锁反应：高投入的创新和内部整合若成功，能甩开模仿者并统一团队意志，但短期财务和团队阵痛剧烈，失败则元气大伤，甚至可能导致核心人员流失。`;
+                        },
+                        feedback: "团队决定双管齐下，破釜沉舟：对外不惜血本加大创新投入以甩开模仿者，对内则由核心领导层强力推动战略统一与组织调整，即使这意味着一些内部调整、人员优化和情感上的巨大代价。这是一个极其痛苦但旨在破局的转型期。"
+                    },
+                    {
+                        text: "对内优先变革，暂避外部竞争锋芒，寻求差异化",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 10); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Cost of internal consultants/workshops
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 20); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); // Significant internal gain
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.min(10, gs.contributorMorale + 2); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 10); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 2); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.max(0, gs.marketPosition - 12); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`); // Market share loss
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 12); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 18); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            gs.specialStatus = gs.specialStatus.filter(s => s.includes("探索期") || s.includes("转型期") || s.includes("尝试失败"));
+                            if (!gs.specialStatus.includes("内部文化与结构优化")) gs.specialStatus.push("内部文化与结构优化");
+                            return `属性变化：${c.join('；')}。连锁反应：内部变革成功将极大提升团队的长期战斗力和愿景执行力，为后续的市场竞争打下坚实基础。但短期内可能因战略保守而错失一些市场机会，市场地位和品牌声誉暂时下滑。`;
+                        },
+                        feedback: "团队认为攘外必先安内，决定优先投入精力进行内部组织变革、明晰权责利、重塑团队文化与决策流程，同时在外部竞争中采取差异化策略，暂避对手锋芒。团队的凝聚力和战略清晰度得到显著提升。"
+                    },
+                    {
+                        text: "寻求与关键模仿者/市场力量的合作或整合",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            if (Math.random() < 0.30) { // Reduced success rate
+                                oldVal = gs.financialHealth; gs.financialHealth = Math.min(100, gs.financialHealth + 20); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Better gain
+                                oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 8); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                                oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 10); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                                oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 25); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`); // Better gain
+                                oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 18); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                                oldVal = gs.visionExecution; gs.visionExecution = Math.max(0, gs.visionExecution - 15); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`); // Greater compromise
+                                if (!gs.specialStatus.includes("战略合并/重要合作达成")) gs.specialStatus.push("战略合并/重要合作达成");
+                                gs.specialStatus = gs.specialStatus.filter(s => s.includes("探索期") || s.includes("转型期") || s.includes("重塑期"));
+                                return `属性变化：${c.join('；')}。连锁反应：成功合作能快速扩大市场份额，解决竞争压力，但也可能需要在愿景、产品方向和团队文化上做出重大妥协，愿景执行力受到较大影响。`;
+                            } else { 
+                                oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.max(0, gs.teamEffectiveness - 15); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); // Bigger hit
+                                oldVal = gs.marketPosition; gs.marketPosition = Math.max(0, gs.marketPosition - 10); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`); // Bigger hit
+                                oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 8); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Cost of failed negotiation
+                                oldVal = gs.brandReputation; gs.brandReputation = Math.max(0, gs.brandReputation - 10); c.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                                c.push("产品竞争力无显著变化"); c.push("商业模式可行性无显著变化"); c.push("愿景执行力无显著变化");
+                                if (!gs.specialStatus.includes("外部合作重大挫折")) gs.specialStatus.push("外部合作重大挫折");
+                                return `属性变化：${c.join('；')}。连锁反应：合作谈判失败，不仅错失机会，消耗了团队精力与资金，还可能让竞争对手更加警惕，内部因未能解决问题而士气严重受挫，品牌声誉受损。`;
+                            }
+                        },
+                        feedback: "面对复杂的内外部局面，团队开始尝试与市场上的一些关键力量（甚至是模仿者）进行接触，寻求合作、整合甚至被并购的可能性。/ 合作谈判最终破裂，TPG不仅未能解决外部竞争问题，反而因此消耗了不少精力，并暴露了自身的困境，团队士气低落。"
+                    }
+                ]
+            },
+            { // Event 5 - 2029
+                id: "TPG_SIM_2029_COMMERCIAL_COMMUNITY_BALANCE",
+                title: "2029：价值的权衡 - 商业化深化与社群初心",
+                description: (gs) => `TPG的商业化已取得一定进展（如B2B定制业务稳定），但团队发现，过度追求营收增长可能开始侵蚀社群的共创氛围和用户信任。核心用户（社群规模约${gs.communitySize}人，活跃度${gs.communityEngagement}%）对平台的“功利化”倾向表示担忧，部分核心贡献者（当前约${gs.contributorsCount}名，士气${gs.contributorMorale}/10）的“社区项目”提案热情下降，积分体系健康度（当前状态：${gs.pointsSystemStatus}）面临考验。`,
+                yearTriggerMin: 2029, yearTriggerMax: 2029, triggered: false,
+                choices: [
+                    {
+                        text: "继续深化商业化，优先财务回报",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.min(100, gs.financialHealth + 30); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`);
+                            oldVal = gs.monthlyBurnRate; gs.monthlyBurnRate -= 1500; c.push(`月度运营成本 ${oldVal} -> ${gs.monthlyBurnRate}`);
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.max(0, gs.teamEffectiveness - 20); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.max(0, gs.contributorMorale - 4); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.communityEngagement; gs.communityEngagement = Math.max(0, gs.communityEngagement - 25); c.push(`社群活跃度 ${oldVal}% -> ${gs.communityEngagement}%`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 10); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.max(0, gs.brandReputation - 20); c.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 25); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.max(0, gs.visionExecution - 25); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if(!gs.specialStatus.includes("营收驱动战略")) gs.specialStatus.push("营收驱动战略");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "社群价值回归");
+                            gs.pointsSystemStatus = "商业化侵蚀中"; c.push(`积分体系状态 -> ${gs.pointsSystemStatus}`);
+                            return `属性变化：${c.join('；')}。连锁反应：财务状况和盈利能力显著改善。但社群活跃度和贡献者士气大幅下降，品牌声誉因“功利化”受损，团队内部对严重偏离“游牧网络”和“精神大学”愿景的担忧加剧，核心团队凝聚力下降。`;
+                        },
+                        feedback: "团队决定将财务回报置于绝对优先地位，加速商业化进程。营收数据飙升，但也清晰地听到了来自社群深处失落的叹息，TPG的“初心”正在经受严峻考验，一些早期成员开始感到迷茫。"
+                    },
+                    {
+                        text: "调整商业策略，引入社群共赢机制",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.min(100, gs.financialHealth + 10); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`);
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 20); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.min(10, gs.contributorMorale + 4); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.communityEngagement; gs.communityEngagement = Math.min(100, gs.communityEngagement + 30); c.push(`社群活跃度 ${oldVal}% -> ${gs.communityEngagement}%`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 12); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 15); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.min(100, gs.brandReputation + 25); c.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.communitySize; gs.communitySize += Math.floor(gs.communitySize * 0.15); c.push(`社群规模 ${oldVal} -> ${gs.communitySize}`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 18); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            gs.pointsSystemStatus = "社群共赢V2.0激活"; c.push(`积分体系状态 -> ${gs.pointsSystemStatus}`);
+                            oldVal = gs.communityPointsPool; gs.communityPointsPool += 1200; c.push(`社区积分池 ${oldVal} -> ${gs.communityPointsPool}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 25); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if(!gs.specialStatus.includes("社群价值回归")) gs.specialStatus.push("社群价值回归");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "营收驱动战略");
+                            return `属性变化：${c.join('；')}。连锁反应：短期盈利增速放缓，但社群信任显著修复，贡献者积极性和高质量UGC产出大幅提升，品牌口碑和市场地位得到巩固和提升，商业模式更具长期可持续性，更契合“精神大学”和“游牧网络”的愿景。`;
+                        },
+                        feedback: "团队深刻反思后，决定调整商业化策略，引入更透明的收益分享机制和社群治理结构，将部分商业收益（例如通过壮大公共基金和优化积分兑换）反哺社群建设和核心贡献者激励。这一举措重新点燃了社群的信任与共创热情，TPG的社群生态焕发出新的活力。"
+                    },
+                    {
+                        text: "保持现状，谨慎观察，暂不调整",
+                        effects: (gs) => {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.min(100, gs.financialHealth + 8); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); 
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.max(0, gs.teamEffectiveness - 12); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`);
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.max(0, gs.contributorMorale - 3); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.communityEngagement; gs.communityEngagement = Math.max(0, gs.communityEngagement - 15); c.push(`社群活跃度 ${oldVal}% -> ${gs.communityEngagement}%`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.max(0, gs.marketPosition - 10); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`);
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.max(0, gs.brandReputation - 12); c.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.max(0, gs.visionExecution - 12); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`);
+                            if (!gs.specialStatus.includes("社群矛盾加剧")) gs.specialStatus.push("社群矛盾加剧");
+                            return `属性变化：${c.join('；')}。连锁反应：短期内避免了调整带来的阵痛，但社群内部的负面情绪和信任危机持续发酵并加剧，核心贡献者流失风险增大，口碑和市场地位受到侵蚀，团队效能持续下滑，与愿景的偏离越来越大。`;
+                        },
+                        feedback: "团队对是否调整商业策略犹豫不决，选择暂时维持现状，希望问题能自行缓解。然而，社群的耐心似乎正在耗尽，不满的声音越来越大，TPG的品牌声誉开始受到实质性影响，一些核心用户和贡献者选择离开。"
+                    }
+                ]
+            },
+            { // Event 6 - 2030
+                id: "TPG_SIM_2030_AGI_REVOLUTION",
+                title: "2030：时代的终极试炼 - AGI浪潮下的颠覆与重塑",
+                description: "通用人工智能(AGI)技术在2030年取得颠覆性突破，开始深度重塑内容创作、社群互动、乃至商业模式的方方面面。用户对AI深度整合的体验抱有极高期待。TPG的核心价值（人类协作叙事、深度思辨引导）受到了前所未有的挑战。团队必须做出关乎TPG未来形态和生存方式的根本性抉择。这是决定TPG能否进化以适应新时代的关键时刻。",
+                yearTriggerMin: 2030, yearTriggerMax: 2030, triggered: false,
+                choices: [
+                    {
+                        text: "全面拥抱AGI：成为AI驱动的协作智能平台",
+                        effects: function(gs) {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 40); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Massive cost
+                            oldVal = gs.monthlyBurnRate; gs.monthlyBurnRate += 10000; c.push(`月度运营成本 ${oldVal} -> ${gs.monthlyBurnRate}`);
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.max(0, gs.teamEffectiveness - 35); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); // Massive disruption
+                            oldVal = gs.contributorsCount; gs.contributorsCount = Math.max(2, Math.floor(gs.contributorsCount * 0.4)); c.push(`贡献者数量 ${oldVal} -> ${gs.contributorsCount}`);
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.max(0, gs.contributorMorale - 5); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 50); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`); // High potential if successful
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, 10); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`); // Max out if successful
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 45); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`); 
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 35); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.max(0, gs.visionExecution - 50); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`); // Massive deviation from original human-centric vision
+                            gs.specialStatus = ["AGI平台革命性转型", "组织结构剧变", "高风险高回报探索期", "烧钱续命"];
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "坚守人文核心" && s !== "深耕人文体验细分市场"  && s !== "人机共生模式探索中");
+                            return `属性变化：${c.join('；')}。连锁反应：一场彻底的豪赌。若转型成功，TPG可能成为新时代的领导者；但转型风险极高，财务、团队面临巨大压力，一旦失败，前期所有积累可能付诸东流，直接导致游戏结束。人文愿景几乎被技术愿景取代，与“精神大学”理念渐行渐远。`;
+                        },
+                        feedback: "TPG决定以壮士断腕的决心，全面拥抱AGI，目标是成为下一代AI驱动的协作智能平台的定义者！这是一场九死一生的豪赌，团队开始了痛苦而剧烈的技术攻坚、技能迭代和模式重塑，旧的TPG几乎不复存在，财务压力空前巨大。"
+                    },
+                    {
+                        text: "人机共生：将AGI作为赋能工具，坚守人文核心",
+                        effects: function(gs) {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.max(0, gs.financialHealth - 18); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Significant but managed cost
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 15); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); 
+                            oldVal = gs.contributorMorale; gs.contributorMorale = Math.min(10, gs.contributorMorale + 3); c.push(`贡献者士气 ${oldVal} -> ${gs.contributorMorale}`);
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 30); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`); 
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.min(10, gs.productInnovation + 4); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`);
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.min(100, gs.marketPosition + 25); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`); 
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 20); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`);
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 30); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`); // Vision evolved
+                            if(!gs.specialStatus.includes("人机共生创新引领者")) gs.specialStatus.push("人机共生创新引领者");
+                            if(!gs.specialStatus.includes("人文价值与科技深度融合")) gs.specialStatus.push("人文价值与科技深度融合");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "全面AGI化转型中" && s !== "深耕人文体验细分市场");
+                            return `属性变化：${c.join('；')}。连锁反应：成功地将AGI融入现有核心价值，极大提升了产品体验的深度、个性化和运营效率，形成了独特的市场竞争力。团队技能得到提升，愿景在科技浪潮中得到升华和延续，更好地服务“游牧网络”和“精神大学”的理念。`;
+                        },
+                        feedback: "TPG选择了一条人机共生的进化之路！团队开始积极探索如何让AGI成为增强人类协作叙事和深度思辨的强大工具，而非替代品。这既是对前沿技术的拥抱，也是对人文核心价值的坚守与创新性发展，团队为此充满干劲。"
+                    },
+                    {
+                        text: "数字桃花源：专注服务核心小众，强化纯粹人文体验",
+                        effects: function(gs) {
+                            let c = []; let oldVal;
+                            oldVal = gs.financialHealth; gs.financialHealth = Math.min(100, gs.financialHealth + 10); c.push(`财务状况 ${oldVal} -> ${gs.financialHealth}`); // Niche profit, less reliant on scale
+                            oldVal = gs.teamEffectiveness; gs.teamEffectiveness = Math.min(100, gs.teamEffectiveness + 15); c.push(`团队效能 ${oldVal} -> ${gs.teamEffectiveness}`); 
+                            oldVal = gs.productStrength; gs.productStrength = Math.min(100, gs.productStrength + 18); c.push(`产品竞争力 ${oldVal} -> ${gs.productStrength}`);
+                            oldVal = gs.productInnovation; gs.productInnovation = Math.max(0, gs.productInnovation - 1); c.push(`产品创新力 ${oldVal} -> ${gs.productInnovation}`); // Less tech innovation focus
+                            oldVal = gs.marketPosition; gs.marketPosition = Math.max(0, gs.marketPosition - 30); c.push(`市场地位 ${oldVal} -> ${gs.marketPosition}`); // Significant mass market loss
+                            oldVal = gs.brandReputation; gs.brandReputation = Math.min(100, gs.brandReputation + 30); c.push(`品牌声誉 ${oldVal} -> ${gs.brandReputation}`);
+                            oldVal = gs.communitySize; gs.communitySize = Math.max(200, Math.floor(gs.communitySize * 0.5)); c.push(`社群规模 ${oldVal} -> ${gs.communitySize}`); // Smaller, highly dedicated
+                            oldVal = gs.communityEngagement; gs.communityEngagement = Math.min(100, gs.communityEngagement + 20); c.push(`社群活跃度 ${oldVal}% -> ${gs.communityEngagement}%`);
+                            oldVal = gs.businessViability; gs.businessViability = Math.min(100, gs.businessViability + 10); c.push(`商业模式可行性 ${oldVal} -> ${gs.businessViability}`); 
+                            oldVal = gs.visionExecution; gs.visionExecution = Math.min(100, gs.visionExecution + 35); c.push(`愿景执行力 ${oldVal} -> ${gs.visionExecution}`); // Ultimate vision adherence
+                            if(!gs.specialStatus.includes("纯粹人文体验守护者")) gs.specialStatus.push("纯粹人文体验守护者");
+                            if(!gs.specialStatus.includes("反璞归真战略")) gs.specialStatus.push("反璞归真战略");
+                            gs.specialStatus = gs.specialStatus.filter(s => s !== "全面AGI化转型中" && s !== "人机共生模式探索中");
+                            return `属性变化：${c.join('；')}。连锁反应：虽然彻底放弃了追逐主流市场和前沿技术，商业规模受限，但通过提供极致且纯粹的人文体验，在特定小众市场建立极高的用户忠诚度和品牌美誉度，形成独特的文化“护城河”。然而，如果小众市场进一步萎缩或生活方式被AGI间接颠覆，此路径也面临生存风险。`;
+                        },
+                        feedback: "面对AGI的颠覆性变革，TPG毅然选择回归其最核心的人文价值，服务好真正热爱深度、纯粹、无AI干扰体验的小众社群，努力成为汹涌科技时代中的一方“数字桃花源”。这或许意味着放弃了星辰大海，但可能收获一片宁静且忠诚的、真正践行“精神大学”理念的港湾。"
+                    }
+                ]
+            }
+        ];
+
+        // --- UI Definitions for Status Dashboard ---
+        const statusUIDefinitions = [
+            { 
+                id: "financialHealth", 
+                title: "财务状况", 
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>`,
+                tooltipText: "团队的资金储备、现金流健康度及盈利能力。评分低于等于10则濒临破产。",
+                valueKey: "financialHealth",
+                descGetterKey: "getFinancialHealthDescription",
+                colorLogicFn: (gs) => {
+                    const score = gs.financialHealth;
+                    if (score <= 10) return '#e74c3c'; 
+                    if (score < 20) return '#f39c12'; 
+                    if (score < 50) return '#f1c40f'; 
+                    return '#2ecc71'; 
+                }
+            },
+            { 
+                id: "teamEffectiveness", 
+                title: "团队效能", 
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`,
+                tooltipText: "核心团队士气、凝聚力、兼职贡献者状态及整体协作效率。评分低于等于20则濒临解体。",
+                valueKey: "teamEffectiveness",
+                descGetterKey: "getTeamEffectivenessDescription",
+                colorLogicFn: (gs) => {
+                    const score = gs.teamEffectiveness;
+                    if (score <= 20) return '#e74c3c'; 
+                    if (score < 45) return '#f39c12'; 
+                    if (score < 75) return '#3498db'; 
+                    return '#2ecc71'; 
+                }
+            },
+            { 
+                id: "productStrength", 
+                title: "产品竞争力", 
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.08.5-.82C8.48 7.01 10.15 6 12 6c2.61 0 4.83 1.85 5.45 4.43l.3 1.18 1.17.07C20.21 11.79 21 12.8 21 14c0 1.65-1.35 3-3 3zM8 12h8v2H8v-2z"/></svg>`,
+                tooltipText: "核心产品（规则/体验/内容）的成熟度、独特性与创新力。",
+                valueKey: "productStrength",
+                descGetterKey: "getProductStrengthDescription",
+                colorLogicFn: (gs) => {
+                    const score = gs.productStrength;
+                    if (score < 25) return '#e74c3c';
+                    if (score < 45) return '#f39c12';
+                    if (score < 75) return '#3498db';
+                    return '#2ecc71';
+                }
+            },
+            { 
+                id: "marketPosition", 
+                title: "市场地位", 
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`,
+                tooltipText: "市场影响力、品牌声誉、用户/社群规模与活跃度、竞争优势。",
+                valueKey: "marketPosition",
+                descGetterKey: "getMarketPositionDescription",
+                colorLogicFn: (gs) => {
+                    const score = gs.marketPosition;
+                    if (score < 20) return '#e74c3c';
+                    if (score < 40) return '#f39c12';
+                    if (score < 70) return '#3498db';
+                    return '#2ecc71';
+                }
+            },
+            { 
+                id: "businessViability", 
+                title: "商业模式可行性", 
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM13 20.01L4 11V4h7v-.01l9 9-7 7.02z"/><circle cx="6.5" cy="6.5" r="1.5"/></svg>`,
+                tooltipText: "盈利模式清晰度与可持续性、营收能力、社区积分/公共基金健康度。",
+                valueKey: "businessViability",
+                descGetterKey: "getBusinessViabilityDescription",
+                colorLogicFn: (gs) => {
+                    const score = gs.businessViability;
+                    if (score < 20) return '#e74c3c';
+                    if (score < 40) return '#f39c12';
+                    if (score < 70) return '#3498db';
+                    return '#2ecc71';
+                }
+            },
+            { 
+                id: "visionExecution", 
+                title: "愿景执行力", 
+                iconSVG: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24px" height="24px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C20.73 7.61 17 4.5 12 4.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`,
+                tooltipText: "当前战略与初步愿景（“游牧网络”、“精神大学”）的契合度，团队特殊状态，关键里程碑。",
+                valueKey: "visionExecution",
+                descGetterKey: "getVisionExecutionDescription",
+                colorLogicFn: (gs) => {
+                    const score = gs.visionExecution;
+                    if (score < 25) return '#e74c3c';
+                    if (score < 45) return '#f39c12';
+                    if (score < 75) return '#3498db';
+                    return '#2ecc71';
+                }
+            }
+        ];
+
+
+        // --- DOM Elements ---
+        let currentYearDisplay, phaseDisplay, statusDashboard, eventTitle, eventDescription, choicesContainer, feedbackText, nextButton, restartButton, gameLogUl, gameOverMessageEl, themeToggleButton;
+
+        // --- Utility function to add or remove special status ensuring no duplicates ---
+        function manageSpecialStatus(gs, statusToAdd, statusToRemove) {
+            if (statusToRemove) {
+                gs.specialStatus = gs.specialStatus.filter(s => !statusToRemove.includes(s));
+            }
+            if (statusToAdd) {
+                statusToAdd.forEach(newStatus => {
+                    if (!gs.specialStatus.includes(newStatus)) {
+                        gs.specialStatus.push(newStatus);
+                    }
+                });
+            }
+        }
+
+
+        // --- Core Game Functions ---
+        window.addEventListener('DOMContentLoaded', () => {
+            currentYearDisplay = document.getElementById('currentYearDisplay');
+            phaseDisplay = document.getElementById('phaseDisplay');
+            statusDashboard = document.getElementById('statusDashboard');
+            eventTitle = document.getElementById('eventTitle');
+            eventDescription = document.getElementById('eventDescription');
+            choicesContainer = document.getElementById('choicesContainer');
+            feedbackText = document.getElementById('feedbackText');
+            nextButton = document.getElementById('nextButton');
+            restartButton = document.getElementById('restartButton');
+            gameLogUl = document.getElementById('gameLogUl');
+            gameOverMessageEl = document.getElementById('gameOverMessage');
+            themeToggleButton = document.getElementById('themeToggle');
+
+            statusUIDefinitions.forEach(def => {
+                const card = document.createElement('div');
+                card.classList.add('status-card');
+                card.id = `status-${def.id}`;
+                const titleEl = document.createElement('h3');
+                titleEl.innerHTML = `${def.iconSVG || ''} ${def.title}`;
+                const tooltipSpan = document.createElement('span');
+                tooltipSpan.classList.add('tooltip');
+                tooltipSpan.textContent = 'ℹ️';
+                const tooltipTextSpan = document.createElement('span');
+                tooltipTextSpan.classList.add('tooltiptext');
+                tooltipTextSpan.textContent = def.tooltipText;
+                tooltipSpan.appendChild(tooltipTextSpan);
+                titleEl.appendChild(tooltipSpan);
+                const valueDisplay = document.createElement('div');
+                valueDisplay.classList.add('value');
+                valueDisplay.id = `value-${def.id}`;
+                const descDisplay = document.createElement('div');
+                descDisplay.classList.add('description');
+                descDisplay.id = `desc-${def.id}`;
+                const progressBar = document.createElement('progress');
+                progressBar.id = `progress-${def.id}`;
+                progressBar.max = 100;
+                progressBar.value = gameState[def.valueKey];
+                card.appendChild(titleEl);
+                card.appendChild(valueDisplay);
+                card.appendChild(descDisplay);
+                card.appendChild(progressBar);
+                statusDashboard.appendChild(card);
+            });
+            
+            if (localStorage.getItem('tpgSimTheme') === 'dark-mode') {
+                document.body.classList.add('dark-mode');
+            }
+            themeToggleButton.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('tpgSimTheme', document.body.classList.contains('dark-mode') ? 'dark-mode' : 'light-mode');
+            });
+
+            nextButton.addEventListener('click', () => {
+                if (gameState.turn === 0 && nextButton.textContent.includes("开始远征")) {
+                    addLogEntry("远征开始！", "year");
+                    loadNextEvent(); 
+                    nextButton.disabled = true; 
+                } else {
+                    advanceYearAndLoadEvent();
+                }
+            });
+            restartButton.addEventListener('click', initializeGame);
+            initializeGame();
+        });
+
+        function initializeGame() {
+            gameState = JSON.parse(JSON.stringify(initialGameState));
+            if(gameLogUl) gameLogUl.innerHTML = '';
+            gameState.gameLog = [];
+            eventLibrary.forEach(event => event.triggered = false);
+            gameState.gameOver = false;
+            gameState.gameOverReason = "";
+            gameState.currentEvent = null;
+            updateDashboard();
+            if(eventTitle) eventTitle.textContent = "欢迎来到《十人小组 - 未来远征模拟》";
+            if(eventDescription) eventDescription.innerHTML = `您和您的团队将共同导航《十人小组》(TPG)项目从2025年至2030年的发展道路。<br>每个“回合”代表一个关键的发展阶段或年份，您将面临一个核心事件，并需要共同做出战略决策。<br>您的决策将直接影响团队的六大核心状态，并可能触发连锁反应——这就是“财富流沙盘效应”。<br>仔细讨论，明智选择，努力实现团队的愿景！`;
+            if(choicesContainer) choicesContainer.innerHTML = '';
+            if(feedbackText) feedbackText.textContent = "点击“开始远征”以触发第一个事件。";
+            if(gameOverMessageEl) {
+                gameOverMessageEl.textContent = "";
+                gameOverMessageEl.style.display = "none";
+                gameOverMessageEl.className = ""; 
+            }
+            if(nextButton) {
+                nextButton.disabled = false;
+                nextButton.textContent = "开始远征";
+            }
+            if(restartButton) restartButton.style.display = 'none';
+            addLogEntry(`游戏初始化 - 年份: ${gameState.currentYear}, 初始状态已设定。`, "system");
+        }
+
+        function updatePhaseDisplay() {
+            if (gameState.currentYear === 2025) gameState.phase = "初始·奠基期 (2025)";
+            else if (gameState.currentYear >= 2026 && gameState.currentYear <= 2027) gameState.phase = `成长·探索期 (${gameState.currentYear})`;
+            else if (gameState.currentYear >= 2028 && gameState.currentYear <= 2029) gameState.phase = `模式·突破期 (${gameState.currentYear})`;
+            else if (gameState.currentYear >= 2030) gameState.phase = `未来·抉择期 (${gameState.currentYear})`;
+            if(phaseDisplay) phaseDisplay.textContent = `阶段：${gameState.phase}`;
+        }
+
+        function updateDashboard() {
+            if(!currentYearDisplay || !statusDashboard) return; 
+            updatePhaseDisplay();
+            currentYearDisplay.textContent = `年份：${gameState.currentYear}`;
+            statusUIDefinitions.forEach(def => {
+                const valueEl = document.getElementById(`value-${def.id}`);
+                const descEl = document.getElementById(`desc-${def.id}`);
+                const progressEl = document.getElementById(`progress-${def.id}`);
+                
+                // Ensure values are clamped and rounded for display
+                let displayValue = Math.round(gameState[def.valueKey]);
+                if (def.valueKey !== 'productInnovation' && def.valueKey !== 'contributorMorale') { // These are 0-10
+                    displayValue = Math.min(100, Math.max(0, displayValue));
+                } else {
+                    displayValue = Math.min(10, Math.max(0, displayValue));
+                }
+
+
+                if (valueEl) valueEl.textContent = `${displayValue}`;
+                if (descEl && gameStateGetters[def.descGetterKey]) {
+                     descEl.innerHTML = gameStateGetters[def.descGetterKey](gameState);
+                }
+                if (progressEl) progressEl.value = displayValue; // Use clamped value for progress bar
+            });
+            updateProgressColors();
+        }
+        
+        function updateProgressColors() {
+            if(!statusDashboard) return;
+            statusUIDefinitions.forEach(def => {
+                const progressEl = document.getElementById(`progress-${def.id}`);
+                if (progressEl && def.colorLogicFn) {
+                    const color = def.colorLogicFn(gameState);
+                    progressEl.style.setProperty('--default-progress-value-color', color); 
+                    
+                    // This is a bit of a hack for Webkit as direct JS styling of pseudo-elements is restricted.
+                    // We'll inject a style rule if it doesn't exist, or update it.
+                    let styleSheet = document.getElementById(`progress-style-${def.id}`);
+                    if (!styleSheet) {
+                        styleSheet = document.createElement("style");
+                        styleSheet.id = `progress-style-${def.id}`;
+                        document.head.appendChild(styleSheet);
+                    }
+                    styleSheet.textContent = `
+                        progress#progress-${def.id}::-webkit-progress-value { background-color: ${color}; }
+                        progress#progress-${def.id}::-moz-progress-bar { background-color: ${color}; }
+                    `;
+                    // For modern browsers that support accent-color on progress:
+                    progressEl.style.accentColor = color; 
+                }
+            });
+        }
+
+        function loadNextEvent() {
+            if (gameState.gameOver) return;
+            if (gameState.turn < gameState.maxTurns) {
+                gameState.currentEvent = eventLibrary[gameState.turn];
+                eventTitle.textContent = gameState.currentEvent.title;
+                if (typeof gameState.currentEvent.description === 'function') {
+                    eventDescription.textContent = gameState.currentEvent.description(gameState);
+                } else {
+                    eventDescription.textContent = gameState.currentEvent.description;
+                }
+                choicesContainer.innerHTML = '';
+                gameState.currentEvent.choices.forEach((choice, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = choice.text;
+                    button.onclick = () => handleChoice(index);
+                    choicesContainer.appendChild(button);
+                });
+                feedbackText.textContent = "请做出您的决策...";
+                nextButton.disabled = true;
+                addLogEntry(`事件触发 (${gameState.currentYear}): ${gameState.currentEvent.title}`, "game-event");
+            } else {
+                // This condition should now primarily be caught by advanceYearAndLoadEvent
+                if (!gameState.gameOver) { 
+                     triggerGameEnd("VICTORY_TIME_LIMIT");
+                }
+            }
+        }
+        
+        function clampValues(gs) {
+            // Clamp core 0-100 stats
+            const coreStats = ["financialHealth", "teamEffectiveness", "productStrength", "marketPosition", "businessViability", "visionExecution", "brandReputation", "communityEngagement"];
+            coreStats.forEach(key => {
+                gs[key] = Math.round(Math.min(100, Math.max(0, gs[key])));
+            });
+            // Clamp 0-10 stats
+            gs.productInnovation = Math.round(Math.min(10, Math.max(0, gs.productInnovation)));
+            gs.contributorMorale = Math.round(Math.min(10, Math.max(0, gs.contributorMorale)));
+            // Absolute numbers can also have floors if needed, e.g., communitySize shouldn't be negative
+            gs.communitySize = Math.max(0, gs.communitySize);
+            gs.contributorsCount = Math.max(0, gs.contributorsCount);
+            gs.communityPointsPool = Math.max(0, gs.communityPointsPool);
+        }
+
+
+        function handleChoice(choiceIndex) {
+            if (!gameState.currentEvent || gameState.gameOver) return;
+            const choice = gameState.currentEvent.choices[choiceIndex];
+            const effectSummary = choice.effects(gameState); 
+            
+            clampValues(gameState); // Ensure all values are within bounds after effects
+
+            gameState.eventHistory.push({ 
+                year: gameState.currentYear, turn: gameState.turn, eventId: gameState.currentEvent.id, 
+                choiceText: choice.text, effectSummary: effectSummary 
+            });
+            
+            feedbackText.innerHTML = `<b>决策反馈：</b>${choice.feedback}<hr style="margin: 10px 0;"><b>影响概要：</b><div style="font-size:0.9em; max-height: 100px; overflow-y:auto; margin-top:5px;">${effectSummary.replace(/；/g, ';<br>')}</div>`;
+            addLogEntry(`决策: "${choice.text}". 影响: ${effectSummary.split("。连锁反应")[0]}...`, "decision");
+            choicesContainer.innerHTML = ''; 
+            updateDashboard(); 
+            if (checkGameOver()) return; 
+            if (!gameState.gameOver) {
+                nextButton.disabled = false;
+                if (gameState.turn < gameState.maxTurns -1 ) { 
+                     nextButton.textContent = "进入下一年";
+                } else {
+                     nextButton.textContent = "查看最终结果";
+                }
+            }
+        }
+
+        function advanceYearAndLoadEvent() {
+            if (gameState.gameOver) return;
+            
+            let oldFH = gameState.financialHealth;
+            let yearlyBurnEffect = 5; 
+            gameState.financialHealth = Math.max(0, gameState.financialHealth - yearlyBurnEffect);
+            clampValues(gameState); // Clamp after passive change
+            addLogEntry(`年度结算 (${gameState.currentYear}结束)：基础运营成本消耗，财务状况 ${oldFH} -> ${gameState.financialHealth}`, "year");
+
+            if (gameState.teamEffectiveness < 80 && gameState.teamEffectiveness > 20 && gameState.financialHealth > 10) {
+                let oldTE = gameState.teamEffectiveness;
+                gameState.teamEffectiveness = Math.min(100, gameState.teamEffectiveness + 2); 
+                clampValues(gameState);
+                addLogEntry(`年度结算 (${gameState.currentYear}结束)：团队逐步磨合，团队效能 ${oldTE} -> ${gameState.teamEffectiveness}`, "system");
+            }
+            
+            const wasFinanciallyStrained = gameState.specialStatus.includes("资金紧张");
+            const isFinanciallyStrained = gameState.financialHealth < 30;
+
+            if (wasFinanciallyStrained && gameState.financialHealth >= 50) { // More robust recovery
+                manageSpecialStatus(gameState, ["资金状况显著改善"], ["资金紧张", "资金相对充裕"]);
+                addLogEntry(`状态更新 (${gameState.currentYear}结束)：财务状况显著改善！`, "system");
+            } else if (!wasFinanciallyStrained && isFinanciallyStrained) {
+                manageSpecialStatus(gameState, ["资金紧张"], ["资金状况显著改善", "资金相对充裕"]);
+                 addLogEntry(`状态更新 (${gameState.currentYear}结束)：财务状况恶化，团队面临“资金紧张”！`, "system");
+            } else if (gameState.financialHealth >= 50 && !gameState.specialStatus.includes("资金相对充裕") && !gameState.specialStatus.includes("资金状况显著改善")){
+                 manageSpecialStatus(gameState, ["资金相对充裕"], ["资金紧张"]);
+                 addLogEntry(`状态更新 (${gameState.currentYear}结束)：财务状况保持相对充裕。`, "system");
+            }
+            
+            updateDashboard(); 
+            if (checkGameOver()) return; 
+
+            gameState.turn++; 
+            gameState.currentYear++;
+            
+            if (gameState.turn >= gameState.maxTurns) { 
+                if (!gameState.gameOver) { 
+                    triggerGameEnd("VICTORY_TIME_LIMIT");
+                }
+            } else {
+                loadNextEvent();
+            }
+        }
+
+        function checkGameOver() {
+            if (gameState.gameOver) return true; 
+            if (gameState.financialHealth <= -20) { 
+                triggerGameEnd("FINANCIAL_COLLAPSE");
+                return true;
+            }
+            if (gameState.teamEffectiveness <= 20) { 
+                triggerGameEnd("TEAM_COLLAPSE");
+                return true;
+            }
+            return false;
+        }
+
+        function triggerGameEnd(reasonCode) {
+            gameState.gameOver = true;
+            gameState.gameOverReason = reasonCode;
+            let message = "";
+            let messageClass = ""; 
+            switch(reasonCode) {
+                case "FINANCIAL_COLLAPSE":
+                    message = `游戏结束：财务危机！TPG的资金储备已无法支撑运营（财务状况评分: ${Math.round(gameState.financialHealth)}）。远征遗憾中止...`;
+                    messageClass = "crisis";
+                    break;
+                case "TEAM_COLLAPSE":
+                    message = `游戏结束：团队危机！TPG的团队效能已降至冰点（团队效能评分: ${Math.round(gameState.teamEffectiveness)}），核心凝聚力丧失。远征难以为继...`;
+                    messageClass = "crisis";
+                    break;
+                case "VICTORY_TIME_LIMIT":
+                    const avgScore = (gameState.financialHealth + gameState.teamEffectiveness + gameState.productStrength + gameState.marketPosition + gameState.businessViability + gameState.visionExecution) / 6;
+                    if (gameState.visionExecution >= 70 && avgScore >= 65) { 
+                        message = `远征功成！TPG不仅成功度过了风雨五年，更高度契合了最初的愿景（愿景执行力: ${Math.round(gameState.visionExecution)}，综合评分: ${Math.round(avgScore)}）。一个光明的未来在等待！`;
+                        messageClass = "victory";
+                    } else if (gameState.visionExecution >= 45 && avgScore >= 45) { 
+                        message = `远征抵达！TPG成功完成了五年模拟，基本实现了愿景（愿景执行力: ${Math.round(gameState.visionExecution)}，综合评分: ${Math.round(avgScore)}）。虽有挑战，但未来可期！`;
+                        messageClass = "victory";
+                    } else if (avgScore >= 30) { // Lowered threshold for "mixed"
+                        message = `远征完成。TPG坚持到了最后，但过程充满艰辛，部分愿景未能完全实现（愿景执行力: ${Math.round(gameState.visionExecution)}，综合评分: ${Math.round(avgScore)}）。未来仍需努力。`;
+                        messageClass = "defeat"; 
+                    } else {
+                         message = `远征艰难结束。TPG虽然完成了模拟，但各项指标堪忧，距离最初的愿景也渐行渐远（愿景执行力: ${Math.round(gameState.visionExecution)}，综合评分: ${Math.round(avgScore)}）。前路迷茫...`;
+                         messageClass = "defeat";
+                    }
+                    break;
+                default:
+                    message = "游戏结束。";
+                    messageClass = "defeat";
+            }
+            gameOverMessageEl.textContent = message;
+            gameOverMessageEl.className = ""; 
+            gameOverMessageEl.classList.add(messageClass); 
+            gameOverMessageEl.style.display = 'block';
+            addLogEntry(`游戏结局 (${reasonCode}): ${message}`, "game-over");
+            nextButton.disabled = true;
+            choicesContainer.innerHTML = ''; 
+            restartButton.style.display = 'inline-block';
+            if(eventTitle) eventTitle.textContent = "远征结束";
+            if(eventDescription) eventDescription.textContent = "请查看下方的最终结局信息，并点击“重新开始”进行新一轮的模拟。";
+            if(feedbackText) feedbackText.textContent = "感谢您的参与！";
+        }
+
+        function addLogEntry(message, type = "system") { 
+            const logItem = { message, type, year: gameState.currentYear, turn: gameState.turn, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) };
+            gameState.gameLog.push(logItem);
+            const li = document.createElement('li');
+            li.classList.add('log-entry', type);
+            
+            let turnPrefix = `回合 ${gameState.turn + 1}`; // Default to 1-indexed turn
+            if (type === "system" && message.includes("初始化")) {
+                turnPrefix = "初始设置";
+            } else if (type === "year" && message.includes("结束")) {
+                 turnPrefix = `${gameState.currentYear}年终`;
+            } else if (type === "game-event" && gameState.turn === 0) { // Event for Turn 0 (Year 2025)
+                 turnPrefix = `初始事件`;
+            } else if (type === "decision" && gameState.turn === 0) { // Decision for Turn 0
+                 turnPrefix = `初始决策`;
+            }
+
+
+            li.innerHTML = `<strong>[${logItem.year} / ${turnPrefix}]</strong> (${logItem.timestamp}) ${logItem.message}`;
+            if (gameLogUl) {
+                gameLogUl.appendChild(li);
+                gameLogUl.scrollTop = gameLogUl.scrollHeight; 
+            }
+        }
+    </script>
+</body>
+</html>
+
